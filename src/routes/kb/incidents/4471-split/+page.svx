@@ -4,7 +4,7 @@ title: '#4471 · three problems in one ticket'
 owner: a1andi
 status: open
 reviewed: 2026-10-30
-signature: a1andi
+signature: v1.eyJzdWIiOiI0NjQ3IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpYXQiOjE3OTMzNzM1NTksImV4cCI6MTc5MzQ1OTk1OX0.qH0hAgiycW8EsLLAq8awXOZuhqta_CL-YkdxsNaG3Cw
 ---
 
 <script>
