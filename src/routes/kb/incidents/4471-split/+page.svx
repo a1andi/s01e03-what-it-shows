@@ -8,67 +8,69 @@ signature: a1andi
 ---
 
 <script>
-  import ProblemTable from '#lib/kb/ProblemTable.svelte';
+  import CauseTable from '#lib/kb/CauseTable.svelte';
   import Callout from '#lib/kb/Callout.svelte';
   import RenderStamp from '#lib/kb/RenderStamp.svelte';
 </script>
 
-[#4471](/kb/incidents/4471) says one bug, one fix queued. Its own reports say three. The desk merged
-them on subject line ([decision 0001](/kb/decisions/0001-dedupe-by-subject)), and three different
-problems write the same subjects. Each one now has a ticket of its own.
+[#4471](/kb/incidents/4471) was merged as one issue and closed on 5 October. Its reports hold three
+problems. The desk merged them on subject line ([decision 0001](/kb/decisions/0001-dedupe-by-subject)),
+and all three write the same subjects. Each one has a ticket of its own.
 
-<ProblemTable
-  ticket={4471}
-  issues={{
-    parser: 'https://github.com/a1andi/s01e03-what-it-shows/issues/1',
-    hint: 'https://github.com/a1andi/s01e03-what-it-shows/issues/2',
-    'one-day': 'https://github.com/a1andi/s01e03-what-it-shows/issues/3',
-  }}
-/>
+<CauseTable ticket={4471} />
+
+| problem | ticket | state |
+| --- | --- | --- |
+| `parser` | [#1](https://github.com/a1andi/s01e03-what-it-shows/issues/1) | closed · fixed: `fix(dates): parse dd/mm for eu locales` |
+| `hint` | [#2](https://github.com/a1andi/s01e03-what-it-shows/issues/2) | closed · won't fix: booking-v3 form retired |
+| one-day move | [#3](https://github.com/a1andi/s01e03-what-it-shows/issues/3) | open · no fix covers it |
 
 <Callout kind="warn">
-The fix queued for #4471 fixes the parser. The other two problems stay after it ships.
+#4471 is closed, but the one-day move is not fixed. Neither the parser fix nor retiring booking-v3
+moves those dates back. #3 stays open.
 </Callout>
 
 ## The three problems
 
-**`parser` · the shared parser reads day-first dates month first.** Every tenant on file writes
-the day first. Their dates come out with day and month swapped: a booking for 7 April lands on
-4 July. It reaches us through the app, by email, and through the booking-v2 form. This is the bug
-#4471 was opened for.
+**`parser` · the shared parser read day-first dates month first.** Every tenant on file writes the
+day first. Their dates came out with day and month swapped: a booking for 7 April landed on 4 July.
+It reached us through the app, by email, and through the booking-v2 form. Engineering fixed it:
+`fix(dates): parse dd/mm for eu locales`.
 
-**`hint` · booking-v3 asks for the month first.** The booking-v3 form prints `MM/DD/YYYY` under its
-date field. The tenant's people type what the hint tells them, and the form reads the date day first.
-The swap looks the same as the parser's, but the parser is not involved: the hint and the form
-disagree. Only reports through the form of a booking-v3 tenant land here. Fix the hint (booking-v2
-prints `DD/MM/YYYY`), not the parser.
+**`hint` · booking-v3 asked for the month first.** The booking-v3 form printed `MM/DD/YYYY` under its
+date field. The tenant's people typed what the hint told them, and the form read the date day first.
+The swap looks the same as the parser's, but the parser was not involved: the hint and the form
+disagreed. Only reports through the form of a booking-v3 tenant land here. Engineering will not fix
+it, because the booking-v3 form is retired.
 
-**`one-day` · the date moves by one day, nothing is swapped.** Tuesday shows as Monday. A client in
-Lisbon got Tuesday and a client in Toronto got Monday for the same meeting. An invite arrived before
-the booking was made. No day and month trade places, so neither fix above moves these back. It looks
-like a time-zone shift. The desk read these reports as a one-day move (`desk-notes.json`), and
-[#4471's table](/kb/incidents/4471) still counts them under `parser`, in a footnote.
+**one-day move · the date moves by one day, nothing is swapped.** Tuesday shows as Monday. A client
+in Lisbon got Tuesday and a client in Toronto got Monday for the same meeting. An invite arrived
+before the booking was made. No day and month trade places, so the parser fix does not move these
+back, and they do not come from the booking-v3 form. It looks like a time-zone shift. The desk read
+these reports as a one-day move (`desk-notes.json`); the table above files them under `parser` by
+tenant and footnotes them there.
 
 ## How to tell them apart
 
 - **Not by subject.** All three problems share the same subject lines.
-- **Not by intake's tag.** Intake guesses from the reporter's browser; the table counts where that
-  guess names a different problem than the tenant does.
+- **Not by intake's tag.** Intake guesses from the reporter's browser; the table shows how often that
+  guess disagrees with the tenant.
 - **By tenant and channel.** `causes.ts` knows each tenant's locale and booking form: a day-first
   tenant's report through a booking-v3 form is `hint`, every other one is `parser`.
 - **By reading the body.** A one-day move names no swapped date. The desk notes these by id.
 
 ## What changes for the desk
 
-- #4471 keeps the `parser` reports. The `hint` and `one-day` reports belong to their own tickets.
-- When the parser fix ships, close the `parser` ticket only.
-- Subject-line merging hid two bugs in this ticket. Decision 0001 stays as accepted; a new decision
-  record should replace it.
+- Close #1 and #2 with #4471: one fixed, one won't fix.
+- Keep #3 open. The one-day move has no owner and no fix yet.
+- Subject-line merging hid two problems in this ticket. Decision 0001 stays as accepted; a new
+  decision record should replace it.
 
 ## How this page counts
 
-Every number above is computed from `reports-4471.json` when the page renders: one report per id
-(the export repeats some), merged into #4471, sorted by `causes.ts` and the desk's one-day notes. If
-the desk merges more reports, the table follows. The tickets give the counts from the 4 October export.
+The table is the desk's own view, `CauseTable`, computed from `reports-4471.json` when the page
+renders: one report per id (the export repeats some), merged into #4471, filed by tenant with
+`causes.ts`. The one-day moves are counted where they are filed, under `parser`, and footnoted. The
+tickets give the same counts.
 
 <RenderStamp {signature} />
